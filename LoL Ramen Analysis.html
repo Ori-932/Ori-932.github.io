@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+
+        .my-element {
+          width: 800px; /* Set the desired fixed width in pixels */
+          margin: 0 auto; /* Center the container horizontally on the page */
+          line-height: 1.5;
+        }
+    </style>
+    <style>
+        h1, h2, h3, h4, h5, h6 {
+            font-family: Arial, sans-serif; 
+        }
+    </style>
+<title>LoL Ramen Analysis</title>
+</head>
+<body>
+<br>
+<br>
+<hr>
+<div class="my-element">
+<style>
+
+  p {
+    font-family: 'Font Name', sans-serif;
+  }
+</style>
+<style>
+  hr {
+    border: 1px dash #666666; 
+    margin: 20px 0; 
+  }
+</style>
+
+<h1>Who's the Egg in the Ramen?</h1>
+<hr>
+<p>This is a project for DSC80 where we clean and perform exploratory data analysis, assess missingness, and conduct permutation tests. This website stands as a report of our findings.</p>
+
+<p><b>Name(s):</b> Ruhua Pan </p>
+
+<h2>Introduction: </h2>
+
+<p>It all started when the current ADC player of team SK Telecomm T1, Gumayusi, once made an analogy about matches and ramen: </p>
+
+<p><i>"ADC is the egg and you don't really need it. But if they are the same ramen, the one with an egg is better. Support is like the bag of dehydrated vegetable. If it is a battle between two cups of the same ramen, that is when the egg matters." </i></p>
+
+<p>It's a super interesting saying, hence I want to test if this saying actually makes sense. Which is, does the performance of ADCs make less impact on the result of the game? </p>
+<hr> 
+<p> My dataset includes all professional League of Legends games that have taken place in 2023, as the patches are important in deciding the outcomes of a game. I've kept columns gameid, league, position, playername, result, kills, deaths, assists, teamkills, teamdeaths, damagetochampions, visionscore, earnedgold. Because we are focusing on the 'outperformance' of a player, the first few columns are used to determine whom a player is competeting with (a bot lane shall be competeing with the other bot lane player, not a support), and the later columns are used to calculate the performance of a player.  </p>
+<p><b>Descriptions of Columns:</b></p>
+<p>Gameid:  a string of characters describing the id of a unique game <br>
+League:  a String describing what league the game takes place.<br>
+Position:  a String describing what position the player plays (or if the line's a team).<br>
+Playername:  The name (not the in-game id) of the player. Would be Blank if the line's describing a team.<br>
+Result:  0 if the team or player loses and 1 if the player or team wins.<br>
+Kills:  an int stating the total kills a player/team got.<br>
+Deaths:  an int stating the total deaths a player/team got.<br>
+Assists:  an int stating the total assists a player/team got.<br>
+Teamkills:  total kills of the player's team.<br>
+Teamdeaths:  total deaths of the player's team.<br>
+Damagetochampions:  total damage to champions a player has done in game.<br>
+Visionscore:  the vision score a player receives after game.<br>
+Earnedgold:  total gold a player has earned in game.<br> </p>
+
+<hr>
+<h2>Data Cleaning and Exploratory Data Analysis: </h2>
+
+<h3>Data Cleaning </h3>
+<p> Firstly, We kept the columns that I need: gameid, league, position, playername, result, kills, deaths, assists, teamkills, teamdeaths, damagetochampions, visionscore, earnedgold. We then make two seperate dataframes, one contains team data only and one contains soly player data, for some analysis. <br> 
+I kept the result in a 0/1 fashion as it's no harder to use than the boolean true/false. We get two dataframes after that: teamdata and playerdata. For my own fun, I made another dataframe called t1matches, containing only matches from tier one professional leagues. <br> I checked through the data and did not found any unrelevent data that shall be transmuted to NaNs.  </p>
+<p><b>Here is the head of teamdata</b></p>
+<table border="1">
+        <tr>
+            <td> </td>
+            <td>gameid</td>
+            <td>league</td>
+            <td>position</td>
+            <td>playername</td>
+            <td>result</td>
+            <td>kills</td>
+            <td>deaths</td>
+            <td>assists</td>
+            <td>teamkils</td>
+            <td>teamdeaths</td>
+            <td>dtc</td>
+            <td>visionscore</td>
+            <td>earnedgold</td>
+        </tr>
+        <tr>
+            <td> 10 </td>
+            <td>ESPORTSTMNT06_2753012</td>
+            <td>LFL2</td>
+            <td>team</td>
+            <td>NaN</td>
+            <td>1</td>
+            <td>13</td>
+            <td>7</td>
+            <td>38</td>
+            <td>13</td>
+            <td>7</td>
+            <td>95203</td>
+            <td>312</td>
+            <td>44787</td>
+        </tr>
+        <tr>
+            <td>11 </td>
+            <td>ESPORTSTMNT06_2753012</td>
+            <td>LFL2</td>
+            <td>team</td>
+            <td>NaN</td>
+            <td>0</td>
+            <td>7</td>
+            <td>13</td>
+            <td>18</td>
+            <td>7</td>
+            <td>13</td>
+            <td>85333</td>
+            <td>304</td>
+            <td>34725</td>
+        </tr>
+        <tr>
+            <td>22 </td>
+            <td>ESPORTSTMNT06_2754023</td>
+            <td>LFL2</td>
+            <td>team</td>
+            <td>NaN</td>
+            <td>0</td>
+            <td>20</td>
+            <td>16</td>
+            <td>44</td>
+            <td>20</td>
+            <td>16</td>
+            <td>106526</td>
+            <td>298</td>
+            <td>54402</td>
+        </tr>
+        <tr>
+            <td>23 </td>
+            <td>ESPORTSTMNT06_2754023</td>
+            <td>LFL2</td>
+            <td>team</td>
+            <td>NaN</td>
+            <td>1</td>
+            <td>16</td>
+            <td>20</td>
+            <td>28</td>
+            <td>16</td>
+            <td>20</td>
+            <td>80368</td>
+            <td>330</td>
+            <td>51224</td>
+        </tr>
+        <tr>
+            <td>34 </td>
+            <td>ESPORTSTMNT06_2755035</td>
+            <td>LFL2</td>
+            <td>team</td>
+            <td>NaN</td>
+            <td>1</td>
+            <td>20</td>
+            <td>7</td>
+            <td>48</td>
+            <td>20</td>
+            <td>7</td>
+            <td>64962</td>
+            <td>292</td>
+            <td>39364</td>
+        </tr>
+    </table>
+    
+<p><b>Here is the head of playerdata</b></p>
+<table border="1">
+        <tr>
+            <td> </td>
+            <td>gameid</td>
+            <td>league</td>
+            <td>position</td>
+            <td>playername</td>
+            <td>result</td>
+            <td>kills</td>
+            <td>deaths</td>
+            <td>assists</td>
+            <td>teamkils</td>
+            <td>teamdeaths</td>
+            <td>dtc</td>
+            <td>visionscore</td>
+            <td>earnedgold</td>
+        </tr>
+        <tr>
+            <td> 0 </td>
+            <td>ESPORTSTMNT06_2753012</td>
+            <td>LFL2</td>
+            <td>top</td>
+            <td>Wylenz</td>
+            <td>1</td>
+            <td>4</td>
+            <td>0</td>
+            <td>6</td>
+            <td>13</td>
+            <td>7</td>
+            <td>14283</td>
+            <td>49</td>
+            <td>13251</td>
+        </tr>
+        <tr>
+            <td>1 </td>
+            <td>ESPORTSTMNT06_2753012</td>
+            <td>LFL2</td>
+            <td>jng</td>
+            <td>Julbu</td>
+            <td>1</td>
+            <td>2</td>
+            <td>2</td>
+            <td>4</td>
+            <td>13</td>
+            <td>7</td>
+            <td>6219</td>
+            <td>61</td>
+            <td>6478</td>
+        </tr>
+        <tr>
+            <td>2 </td>
+            <td>ESPORTSTMNT06_2753012</td>
+            <td>LFL2</td>
+            <td>mid</td>
+            <td>Sintax</td>
+            <td>1</td>
+            <td>2</td>
+            <td>2</td>
+            <td>11</td>
+            <td>13</td>
+            <td>7</td>
+            <td>27028</td>
+            <td>49</td>
+            <td>10118</td>
+        </tr>
+        <tr>
+            <td>3 </td>
+            <td>ESPORTSTMNT06_2753012</td>
+            <td>LFL2</td>
+            <td>bot</td>
+            <td>Axelent</td>
+            <td>1</td>
+            <td>5</td>
+            <td>1</td>
+            <td>7</td>
+            <td>13</td>
+            <td>7</td>
+            <td>42005</td>
+            <td>47</td>
+            <td>11728</td>
+        </tr>
+        <tr>
+            <td>4 </td>
+            <td>ESPORTSTMNT06_2753012</td>
+            <td>LFL2</td>
+            <td>sup</td>
+            <td>Wixo</td>
+            <td>1</td>
+            <td>0</td>
+            <td>2</td>
+            <td>10</td>
+            <td>13</td>
+            <td>7</td>
+            <td>5668</td>
+            <td>106</td>
+            <td>3212</td>
+        </tr>
+    </table>
+    
+<p>And t1matches would look very similar to them, except for the fact that they have both the player and the team data, just focuses only on tier-one professional leagues.</p>
+<h3>Univariate Analysis </h3>
+<img src="overallteamkills.jpg" alt="Overallteamkills hist">
+<p>This is a histogram plotting the density of a professional team's team kills. </p>
+<p>Since we've noticed that this histogram has two peaks (one around 5-7, one around 16-18), we supposed the result of the two-peak histogram might be a result from it being a overlap between two normal distributions, one with winning teams and one with losing teams. Therefore, we plotted the histogram on the winning teams only.  </p>
+<img src="winnerteamkill.jpg" alt="winnerteamkill hist"><br>
+<img src="winnerteamdeath.jpg" alt="winnerteamdeath hist">
+<p>And we get two curves with a single peak. One curve peaks around 5-7, and one other curve peaks around 16-18, just as what we expected. We can concluded that if a team losts, the team is likely to receive 3-15 kills, with them most likely receiving 6 kills (the mode), and if a team wins, they are likely to receive 12-27 kills, with them most likely to receive 17 kills (the mode).</p>
+<h3>Bivariate Analysis </h3>
+<p>Here comes the difference between each <b>position</b> on field. Because we obviously cannot expect a support doing as much damage as a mid-laner do, We'll judge the a player's performance based on a score calculated by (K + A) / (D + 1) (to prevent dividing by 0). </p>
+<p>After the performance is calculated, we calculate the relationship between 'outperformance' in each lane and the actual winning stat. That is, for each position outperforming their opponent, which position's outperformance brings the most direct chance of winning?</p>
+<img src="pd1_winnder.jpg" alt="positive difference 1 hist"><br>
+<p>Apart from that, I'll do the same with a new difference system, calculated by (damagetochampions + goldearned) * visionscore. I'll use that as the new score system and still calculate the same thing as above - for each position outperforming their opponent, which position's outperformance brings the most direct chance of winning?</p>
+<img src="pd2_winner.jpg" alt="positive difference 2 hist"><br>
+<p><b>Analysis</b> </p>
+<p>From both bar charts, we can tell that an outperformance in the bottom lane (ADC position) is the most likely to bring success to the team. </p>
+<p><b>Interesting Aggregates</b> </p>
+<p>The groupby() function used on positions allows us to see what position's players outperformance is more closely related with the overall winning. We can tell that in all cases of a player outperforming the opponent, the case when that player's an ADC brings the most actual winnings. </p>
+<p><i>Note that there's no need to calculate a percentage here, because one game takes 5 players to play, therefore the #of games of all positions shall be equal.</i> </p>
+<hr>
+<h3> Missingness Dependency</h3>
+<p><b>The missingness of 'playername' does depend on position, </b>because teams apparently don't have a player id, and the data is determined by the player's playername in battle. </p>
+<p>We suppose that the position being a 'team' relates with the missingness of 'playername'. The observed statistics is a shockingly 100%. </p>
+<p>We then do the re-permutation for 100 times and then see how many percent of 'playername' is missing that corresponds to a permutated 'position' with the value 'team'. Here's the outcome: </p>
+<img src="missingness.jpg" alt="missingness hist"><br>
+<p>Our observed statistic, 1.00, clearly has a p-value of 0.00.</p>
+<p>Therefore, we conclude that the 'playername' column is NMAR.</p>
+<hr>
+<h3>Hypothesis Testing</h3>
+<p>Here We test out the hypothesis raised by Gumayusi, that a huge difference in ADC does not contribute greatly to the win of the whole team. </p>
+<p>To firstly solve the problem, we have to paraphrase what he was saying. Relating to the background that he's saying it, the sentence roughly translates to 'ADCs alone cannot save the game'. </p>
+<p>Therefore, we count the "Overall Count of Players Who Lost But Still Have Positive 'Difference' by Position", which shows the number of times one player outperformed their opponent but still failed to save the game (to win).</p>
+<p><i>However, when we look at the graph, an awkward fact is that we can see that the bottom lane actually has the fewest stats.</i>Therefore, we would reverse our topic a bit - to see if the obvious smaller value in ADCs saving the world makes statistical sense. </p>
+<p><b>H0:</b>If the event of a player outperforming their opponent but still losing the game happens, the player is equal likely or more likely to be an ADC. </p>
+<p><b>H1:</b>If the event of a player outperforming their opponent but still losing the game happens, the player is less likely to be an ADC.  </p>
+<p><b>Steps:</b></p>
+<p>We do this by carrying out a permutation test on the position value of the playerdata dataset for 1000 times, then record the times that ADCs saving the world. </p>
+<p>We choose the standard significance level alpha = 5% or 0.05.</p>
+<img src="hypothesis.jpg" alt="hypothesis hist"><br>
+<p><b>Result:</b></p>
+<p>After doing 1000 simulations, here's what we get. We can see that the observed statistic, 770, has a p-value of 0.0 in this case. With a significance value of 0.001, we <b>reject the null hypothesis</b>. Thus we conclude that, the probably of an ADC specifically outperforming their opponent but losing the game is smaller than the average player data. Which can be paraphrased to, if the event of some player outperforming their opponent but losing the game happens, that player is less likely to be an ADC. </p>
+<h3>Actual Conclusion</h3>
+<p>While the analysis is done, I don't mean to use this analysis as a rebuttal to Gumayusi's words.</p>
+<p>As what we all know-correlation doesn't equal causation, a very probable guess can be that, a great performance of ADCs in team do require good performance of other lanes, as ADCs are super fragile. Therefore, if a team's overall not doing well, the ADC is less likely to have a good performance even though the player might be trying their best. </p>
+<p>To analyze this more thoroughly, I'll do something like taking the overall gold stat into account, which would probably require a deeper comprehension of the game. </p>
+<p>
+I don't play the game myself nor do I watch matches, so that task might be currently beyond my ability a bit, but maybe I'll be able to test it out in the future. </p>
+
+
+</div>
+<hr>
+<br>
+<div class="my-element">
+  <p><i>Thanks for watching :3</i></p>
+</div>
+<br>
+<br>
+</body>
+</html>
